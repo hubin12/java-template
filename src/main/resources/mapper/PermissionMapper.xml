@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mrbeard.project.mapper.PermissionMapper">
+  <resultMap id="BaseResultMap" type="com.mrbeard.project.entity.Permission">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="permisison_name" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="permission_value" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="path" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="children" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, permisison_name, permission_value, path, children, create_date, update_date
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tb_permission
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from tb_permission
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.mrbeard.project.entity.Permission">
+    insert into tb_permission (id, permisison_name, permission_value, 
+      path, children, create_date, 
+      update_date)
+    values (#{id,jdbcType=BIGINT}, #{permisisonName,jdbcType=VARCHAR}, #{permissionValue,jdbcType=VARCHAR}, 
+      #{path,jdbcType=VARCHAR}, #{children,jdbcType=BIGINT}, #{createDate,jdbcType=TIMESTAMP}, 
+      #{updateDate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.mrbeard.project.entity.Permission">
+    insert into tb_permission
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="permisisonName != null">
+        permisison_name,
+      </if>
+      <if test="permissionValue != null">
+        permission_value,
+      </if>
+      <if test="path != null">
+        path,
+      </if>
+      <if test="children != null">
+        children,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="updateDate != null">
+        update_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="permisisonName != null">
+        #{permisisonName,jdbcType=VARCHAR},
+      </if>
+      <if test="permissionValue != null">
+        #{permissionValue,jdbcType=VARCHAR},
+      </if>
+      <if test="path != null">
+        #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="children != null">
+        #{children,jdbcType=BIGINT},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.mrbeard.project.entity.Permission">
+    update tb_permission
+    <set>
+      <if test="permisisonName != null">
+        permisison_name = #{permisisonName,jdbcType=VARCHAR},
+      </if>
+      <if test="permissionValue != null">
+        permission_value = #{permissionValue,jdbcType=VARCHAR},
+      </if>
+      <if test="path != null">
+        path = #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="children != null">
+        children = #{children,jdbcType=BIGINT},
+      </if>
+      <if test="createDate != null">
+        create_date = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        update_date = #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.mrbeard.project.entity.Permission">
+    update tb_permission
+    set permisison_name = #{permisisonName,jdbcType=VARCHAR},
+      permission_value = #{permissionValue,jdbcType=VARCHAR},
+      path = #{path,jdbcType=VARCHAR},
+      children = #{children,jdbcType=BIGINT},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      update_date = #{updateDate,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

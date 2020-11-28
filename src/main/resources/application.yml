@@ -1,0 +1,6 @@
+# spring
+spring:
+  profiles:
+    active: dev
+  application:
+    name: yymtqrcode
