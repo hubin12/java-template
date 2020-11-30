@@ -1,5 +1,6 @@
 package com.mrbeard.project.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -13,6 +14,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Bean
+    public LoginInterceptor getLoginInterceptor()
+    {
+        return new LoginInterceptor();
+    }
+
+
     /**
      * 自定义登录拦截器
      *
@@ -20,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoginInterceptor())
+        registry.addInterceptor(getLoginInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns("/api/login", "/api/code", "/api/fileUpload", "/api/getImage",
                         "/index.html", "/static/**", "/favicon.ico");

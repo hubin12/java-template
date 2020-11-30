@@ -54,6 +54,16 @@ public class UserController {
         return userService.login(reqDTO);
     }
 
+    /**
+     * 退出登录
+     *
+     * @return
+     */
+    @PostMapping("/logout")
+    public Result logout(HttpServletRequest request){
+        return userService.logout(request);
+    }
+
 
     /**
      * 获取用户信息

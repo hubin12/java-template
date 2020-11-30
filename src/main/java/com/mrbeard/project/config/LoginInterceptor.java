@@ -4,10 +4,12 @@ import cn.hutool.core.util.StrUtil;
 import com.mrbeard.project.enums.ResultCodeEnum;
 import com.mrbeard.project.exception.CustomException;
 import com.mrbeard.project.utils.JwtUtil;
+import com.mrbeard.project.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,6 +24,13 @@ import java.io.IOException;
 public class LoginInterceptor implements HandlerInterceptor {
 
     /**
+     * redis
+     */
+    @Resource
+    RedisUtil redisUtil;
+
+
+    /**
      * 请求进入到正式业务层之前进行拦截判断是登陆
      *
      * @param request
@@ -34,9 +43,16 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         //从request中获取到usertoken
         String usertoken = request.getHeader("token");
-        if("/".equals(request.getRequestURI())){
+        //先从redis中获取
+        boolean hasKey = redisUtil.hasKey("user:token:" + usertoken);
+        if(!hasKey){
+            //用户退出
+            log.error("token is empty!");
+            throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
+        }
+        if ("/".equals(request.getRequestURI())) {
             try {
-                response.sendRedirect(request.getContextPath()+"/index.html");
+                response.sendRedirect(request.getContextPath() + "/index.html");
                 return true;
             } catch (IOException e) {
                 log.error("redirect to index fail!");

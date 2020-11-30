@@ -72,4 +72,12 @@ public interface UserService {
      * @return
      */
     Result updatePassword(UpdatePasswordReqDTO reqDTO);
+
+    /**
+     * 退出登录
+     *
+     * @param request
+     * @return
+     */
+    Result logout(HttpServletRequest request);
 }

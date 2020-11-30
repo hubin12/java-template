@@ -24,12 +24,6 @@ public class JwtUtil {
 
 
     /**
-     * 过期时间为一天
-     * TODO 正式上线更换为15分钟
-     */
-    private static final long EXPIRE_TIME = 24 * 60 * 60 * 1000;
-
-    /**
      * token私钥
      */
     private static final String TOKEN_SECRET = "yymt@&!18GH";
@@ -41,9 +35,9 @@ public class JwtUtil {
      * @param userId
      * @return
      */
-    public static String createToken(String username, Long userId) {
+    public static String createToken(String username, Long userId, Long expireTime) {
         //过期时间
-        Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
+        Date date = new Date(System.currentTimeMillis() + expireTime);
         //私钥及加密算法
         Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
         //设置头信息

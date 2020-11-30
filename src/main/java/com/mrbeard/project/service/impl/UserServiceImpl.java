@@ -69,6 +69,12 @@ public class UserServiceImpl implements UserService {
     UserRoleMapper userRoleMapper;
 
     /**
+     * 过期时间为一天
+     * TODO 正式上线更换为15分钟
+     */
+    private static final long EXPIRE_TIME = 24 * 60 * 60 * 1000;
+
+    /**
      * 获取验证码
      *
      * @return
@@ -113,7 +119,9 @@ public class UserServiceImpl implements UserService {
         // 更新用户登录时间
         userMapper.updateLoginTime(user);
         // 生成JWT
-        String token = JwtUtil.createToken(user.getUserName(), user.getId());
+        String token = JwtUtil.createToken(user.getUserName(), user.getId(), EXPIRE_TIME);
+        //生成redis
+        redisUtil.set("user:token:"+token, token, EXPIRE_TIME);
         // 返回token
         UserLoginRspDTO rspDTO = new UserLoginRspDTO();
         BeanUtil.copyProperties(user, rspDTO);
@@ -262,6 +270,28 @@ public class UserServiceImpl implements UserService {
             log.error("update password fail!, data={}", reqDTO);
             return Result.returnWithCode(ResultCodeEnum.COMMON_SERVER_ERROR);
         }
+        return Result.returnSuccess();
+    }
+
+    /**
+     * 退出登录
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Result logout(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        //获取用户信息
+        if (ObjectUtil.isEmpty(token)) {
+            log.error("get User info params is error!");
+            return Result.returnWithCode(ResultCodeEnum.PARAM_ERROR);
+        }
+
+        //退出登录，将token删除
+        User user = JwtUtil.validToken(token);
+        redisUtil.del("user:token:"+token);
+
         return Result.returnSuccess();
     }
 
