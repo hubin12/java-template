@@ -48,20 +48,14 @@ public enum ResultCodeEnum {
     LOGIN_CODE_ERROR(503, "验证码错误!"),
 
     /**
+     * 缺少主键
+     */
+    LOST_PRIMARY_KEY(503, "缺少主键!"),
+
+    /**
      * 用户名或密码不正确
      */
-    USERNAME_OR_PASSWORD_ERROR(504, "用户名或密码不正确!"),
-
-    /**
-     * 树木已存在
-     */
-    RESOUCE_EXIST(505, "树木已存在!"),
-
-
-    /**
-     * 新增树木失败
-     */
-    ADD_TREE_FAIL(506, "新增树木失败!");
+    USERNAME_OR_PASSWORD_ERROR(504, "用户名或密码不正确!");
 
     /**
      * 响应code

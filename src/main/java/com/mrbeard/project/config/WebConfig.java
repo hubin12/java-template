@@ -30,7 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(getLoginInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/login", "/api/code", "/api/fileUpload", "/api/getImage",
+                .excludePathPatterns("/api/login", "/api/code", "/api/download",
                         "/index.html", "/static/**", "/favicon.ico");
     }
 
