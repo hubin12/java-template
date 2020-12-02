@@ -50,7 +50,7 @@ public enum ResultCodeEnum {
     /**
      * 缺少主键
      */
-    LOST_PRIMARY_KEY(503, "缺少主键!"),
+    LOST_PRIMARY_KEY(505, "缺少主键!"),
 
     /**
      * 用户名或密码不正确

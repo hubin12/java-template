@@ -42,9 +42,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         //从request中获取到usertoken
-        String usertoken = request.getHeader("token");
+        String userToken = request.getHeader("token");
         //先从redis中获取
-        boolean hasKey = redisUtil.hasKey("user:token:" + usertoken);
+        boolean hasKey = redisUtil.hasKey("user:token:" + userToken);
         if(!hasKey){
             //用户退出
             log.error("token is empty!");
@@ -60,13 +60,13 @@ public class LoginInterceptor implements HandlerInterceptor {
             }
         }
         //如果usertoken为空,返回错误。
-        if (StrUtil.isEmpty(usertoken)) {
+        if (StrUtil.isEmpty(userToken)) {
             //用户未登录
             log.error("token is empty!");
             throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
         }
         //解析token
-        JwtUtil.validToken(usertoken);
+        JwtUtil.validToken(userToken);
         return true;
     }
 
