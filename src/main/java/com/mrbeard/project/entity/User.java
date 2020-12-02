@@ -8,7 +8,10 @@ import lombok.experimental.Accessors;
 import java.util.Date;
 
 /**
+ * User实体类
+ *
  * @author hubin
+ * @date 2020-12-1
  *
  */
 @Data

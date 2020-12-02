@@ -47,15 +47,21 @@ public enum ResultCodeEnum {
      */
     LOGIN_CODE_ERROR(503, "验证码错误!"),
 
+
+    /**
+     * 用户名或密码不正确
+     */
+    USERNAME_OR_PASSWORD_ERROR(504, "用户名或密码不正确!"),
+
     /**
      * 缺少主键
      */
     LOST_PRIMARY_KEY(505, "缺少主键!"),
 
     /**
-     * 用户名或密码不正确
+     * 写入Entity文件失败
      */
-    USERNAME_OR_PASSWORD_ERROR(504, "用户名或密码不正确!");
+    FAILED_TO_WRITE_ENTITY(506, "写入Entity文件失败!");
 
     /**
      * 响应code

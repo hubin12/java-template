@@ -42,31 +42,31 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         //从request中获取到usertoken
-        String userToken = request.getHeader("token");
-        //先从redis中获取
-        boolean hasKey = redisUtil.hasKey("user:token:" + userToken);
-        if(!hasKey){
-            //用户退出
-            log.error("token is empty!");
-            throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
-        }
-        if ("/".equals(request.getRequestURI())) {
-            try {
-                response.sendRedirect(request.getContextPath() + "/index.html");
-                return true;
-            } catch (IOException e) {
-                log.error("redirect to index fail!");
-                throw new CustomException();
-            }
-        }
-        //如果usertoken为空,返回错误。
-        if (StrUtil.isEmpty(userToken)) {
-            //用户未登录
-            log.error("token is empty!");
-            throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
-        }
-        //解析token
-        JwtUtil.validToken(userToken);
+        //String userToken = request.getHeader("token");
+        ////先从redis中获取
+        //boolean hasKey = redisUtil.hasKey("user:token:" + userToken);
+        //if(!hasKey){
+        //    //用户退出
+        //    log.error("token is empty!");
+        //    throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
+        //}
+        //if ("/".equals(request.getRequestURI())) {
+        //    try {
+        //        response.sendRedirect(request.getContextPath() + "/index.html");
+        //        return true;
+        //    } catch (IOException e) {
+        //        log.error("redirect to index fail!");
+        //        throw new CustomException();
+        //    }
+        //}
+        ////如果usertoken为空,返回错误。
+        //if (StrUtil.isEmpty(userToken)) {
+        //    //用户未登录
+        //    log.error("token is empty!");
+        //    throw new CustomException(ResultCodeEnum.UNAUTHORIZED);
+        //}
+        ////解析token
+        //JwtUtil.validToken(userToken);
         return true;
     }
 

@@ -28,6 +28,11 @@ public class GeneratorSqlCodeDTO {
     private String databaseType;
 
     /**
+     * 数据库名
+     */
+    private String databaseName;
+
+    /**
      * 字段
      */
     @Valid

@@ -1,6 +1,8 @@
 package com.mrbeard.project.controller;
 
+import com.mrbeard.project.dto.request.GeneratorJavaCodeDTO;
 import com.mrbeard.project.dto.request.GeneratorSqlCodeDTO;
+import com.mrbeard.project.dto.request.ListTablesReqDTO;
 import com.mrbeard.project.entity.common.Result;
 import com.mrbeard.project.service.GeneratorCodeService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +43,39 @@ public class GeneratorCodeController {
     @PostMapping("/generatorSql")
     public Result generatorSql(@Valid @RequestBody GeneratorSqlCodeDTO reqDTO){
         return generatorCodeService.generatorSql(reqDTO);
+    }
+
+
+    /**
+     * 生成Java代码
+     *
+     * @return
+     */
+    @PostMapping("/generatorJava")
+    public Result generatorJava(@Valid @RequestBody GeneratorJavaCodeDTO reqDTO, HttpServletRequest request){
+        return generatorCodeService.generatorJava(reqDTO, request);
+    }
+
+
+    /**
+     * 获取数据库中的所有数据库名称
+     *
+     * @return
+     */
+    @PostMapping("/listDataBases")
+    public Result listDataBases(){
+        return generatorCodeService.listDataBases();
+    }
+
+
+    /**
+     * 获取数据库中的所有表名称
+     *
+     * @return
+     */
+    @PostMapping("/listTables")
+    public Result listTables(@Valid @RequestBody ListTablesReqDTO reqDTO){
+        return generatorCodeService.listTables(reqDTO);
     }
 
 
