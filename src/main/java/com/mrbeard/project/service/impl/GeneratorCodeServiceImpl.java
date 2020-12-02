@@ -220,7 +220,6 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import lombok.AllArgsConstructor;\n").append("import lombok.Data;\n");
         content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors; \n\n");
         //导包
-        List<DatabaseTableColumn> dataTypeCloumns = new ArrayList<>();
         if (columns.contains(new DatabaseTableColumn(null, "decimal", null))) {
             content.append("import java.math.BigDecimal;\n");
         }
