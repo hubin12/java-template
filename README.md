@@ -1,6 +1,9 @@
 #  java-template
 
+###### 项目为减少程序员的开发业务而诞生，主要工作为提供初始项目脚手架：包含基础权限功能、java代码、sql代码生成功能
+###### 配合的前端项目路径： https://github.com/hubin12/vue-template
 
+***
 
 ##  用到的技术
 
