@@ -220,18 +220,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import lombok.AllArgsConstructor;\n").append("import lombok.Data;\n");
         content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors; \n\n");
         //导包
-        if (columns.contains(new DatabaseTableColumn(null, "decimal", null))) {
-            content.append("import java.math.BigDecimal;\n");
-        }
-        if (columns.contains(new DatabaseTableColumn(null, "datetime", null))
-                || columns.contains(new DatabaseTableColumn(null, "date", null))) {
-            content.append("import java.util.Date;\n");
-        }
-        if (columns.contains(new DatabaseTableColumn(null, "timestamp", null))) {
-            content.append("import java.sql.Timestamp;\n");
-        }
-        if (columns.contains(new DatabaseTableColumn(null, "time", null))) {
-            content.append("import java.sql.Time;\n");
+        for (DatabaseTableColumn column : columns) {
+            if (StrUtil.containsAny(column.getDataType(), "decimal", "datetime", "date", "timestamp", "time")) {
+                content.append("import ").append(getJavaPackageType(column.getDataType())).append(";\n\n");
+            }
         }
 
         //注释
@@ -248,41 +240,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         for (DatabaseTableColumn column : columns) {
             String columnName = removeSuffixAndToUp(column.getColumnName());
             content.append("    /**\n     * ").append(column.getColumnComment()).append("\n     */\n");
-            switch (column.getDataType()) {
-                case "varchar":
-                case "char":
-                case "text":
-                    content.append("    private String ").append(columnName).append(";\n");
-                    break;
-                case "timestamp":
-                    content.append("    private Timestamp ").append(columnName).append(";\n");
-                    break;
-                case "time":
-                    content.append("    private Time ").append(columnName).append(";\n");
-                    break;
-                case "datetime":
-                case "date":
-                    content.append("    private Date ").append(columnName).append(";\n");
-                    break;
-                case "decimal":
-                    content.append("    private BigDecimal ").append(columnName).append(";\n");
-                    break;
-                case "double":
-                    content.append("    private Double ").append(columnName).append(";\n");
-                    break;
-                case "float":
-                    content.append("    private Float ").append(columnName).append(";\n");
-                    break;
-                case "bigint":
-                    content.append("    private Long ").append(columnName).append(";\n");
-                    break;
-                case "int":
-                case "tinyint":
-                    content.append("    private Integer ").append(columnName).append(";\n");
-                    break;
-                default:
-                    break;
-            }
+            content.append("    private ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
         }
         content.append("}");
 
@@ -333,8 +291,6 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      * @param reqDTO
      */
     private void generatorMapperCode(GeneratorJavaCodeDTO reqDTO, String codePath) {
-        //获取表字段信息
-        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
         //生成文件夹
         String mapperPath = "mapper";
         String dir = getDir(codePath + File.separator + mapperPath);
@@ -351,11 +307,191 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      * @return
      */
     private String getXmlMapper(GeneratorJavaCodeDTO reqDTO) {
+        //xml所有数据
+        StringBuilder xmlContent = new StringBuilder();
+
         //头部dtd
-        String headContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">";
-        //mapper baseResult
-        String mapperContent = "";
+        String headContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\n";
+        xmlContent.append(headContent);
+        //mapper baseMapper
+        StringBuilder resultMapContent = new StringBuilder();
+
+        //BaseCloumnList
+        StringBuilder baseColumnContent = new StringBuilder();
+        baseColumnContent.append("<sql id=\"Base_Column_List\">\n");
+
+        //命名空间
+        resultMapContent.append("<mapper namespace=\"com.base.project.mapper.").append(reqDTO.getEntityName()).append("Mapper\">\n");
+        //BaseResultMap
+        resultMapContent.append("<resultMap id=\"BaseResultMap\" type=\"com.mrbeard.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        resultMapContent.append("<constructor>\n");
+
+        //获取表字段信息
+        StringBuilder idContent = new StringBuilder();
+        StringBuilder argContent = new StringBuilder();
+        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
+        StringBuilder cloumnList = new StringBuilder();
+        for (DatabaseTableColumn column : columns) {
+            if (ObjectUtil.isNotEmpty(column.getColumnKey())) {
+                idContent.append("<idArg column=\"").append(column.getColumnName())
+                        .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
+                        .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
+            } else {
+                argContent.append("<arg column=\"").append(column.getColumnName())
+                        .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
+                        .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
+            }
+            cloumnList.append(column.getColumnName()).append(",");
+        }
+        baseColumnContent.append(cloumnList.toString(), 0, cloumnList.toString().length() - 1).append("\n").append("</sql>\n");
+        resultMapContent.append(idContent).append(argContent);
+        resultMapContent.append("</constructor>\n");
+        xmlContent.append(resultMapContent).append(baseColumnContent);
+
+        //根据返回的需要生成的mapper方法进行生成
+        String sqlMethod = setSqlMethods(reqDTO);
+
         return null;
+    }
+
+    /**
+     * 生成Mapper Method
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String setSqlMethods(GeneratorJavaCodeDTO reqDTO) {
+        List<String> mapperNames = reqDTO.getMapperNames();
+        //条件插入
+        if (mapperNames.contains("insertSelective")) {
+            String insertSelective = generatorInsertSelective(reqDTO);
+        }
+        if(mapperNames.contains("insertBatch")) {
+            String insertBatch = generatorBatchInsert(reqDTO);
+        }
+        return null;
+    }
+
+    /**
+     * 生成批量条件插入
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorBatchInsert(GeneratorJavaCodeDTO reqDTO) {
+        StringBuilder content = new StringBuilder();
+        content.append("<insert id=\"insertBatch\" parameterType=\"java.util.List\"");
+        content.append("insert into ").append(reqDTO.getTableName()).append("(\n");
+        //获取表信息
+        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
+        //值信息
+        StringBuilder valueContent = new StringBuilder();
+        StringBuilder foreachContent = new StringBuilder();
+        foreachContent.append("<foreach collection=\"list\" item=\"item\" open=\"(\" separator=\"),(\" close=\")\">\n");
+        for (DatabaseTableColumn column : columns) {
+            content.append(column.getDataType()).append(",");
+            foreachContent.append("#{item.").append(removeSuffixAndToUp(column.getDataType())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},");
+        }
+        content.append(valueContent.toString(), 0, valueContent.toString().length() -1).append(") values\n");
+        content.append(valueContent).append("</trim>\n").append("</insert>\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成条件插入Mapper
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorInsertSelective(GeneratorJavaCodeDTO reqDTO) {
+        StringBuilder content = new StringBuilder();
+        content.append("<insert id=\"insertSelective\" parameterType=\"com.base.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        content.append("insert into ").append(reqDTO.getTableName()).append("\n");
+        content.append("<trim prefix=\"(\" suffix=\")\" suffixOverrides=\",\">\n");
+        //获取表信息
+        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
+        //值信息
+        StringBuilder valueContent = new StringBuilder();
+        for (DatabaseTableColumn column : columns) {
+            content.append(" <if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null\">\n        ").append(column.getColumnName()).append(",\n      </if>\n");
+            valueContent.append("<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null\">\n        #{").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n      </if>\n");
+        }
+        content.append("</trim>\n").append("<trim prefix=\"values (\" suffix=\")\" suffixOverrides=\",\">\n");
+        content.append(valueContent).append("</trim>\n").append("</insert>\n");
+        return content.toString();
+    }
+
+    /**
+     * 将数据库类型转换为Java包类型
+     *
+     * @param dataType
+     * @return
+     */
+    private String getJavaPackageType(String dataType) {
+        switch (dataType.toLowerCase()) {
+            case "varchar":
+            case "char":
+            case "text":
+                return "java.lang.String";
+            case "decimal":
+                return "java.math.BigDecimal";
+            case "datetime":
+            case "date":
+                return "java.util.Date";
+            case "timestamp":
+                return "java.sql.Timestamp";
+            case "time":
+                return "java.sql.Time";
+            case "double":
+                return "java.lang.Double";
+            case "float":
+                return "java.lang.Float";
+            case "bigint":
+                return "java.lang.Long";
+            case "int":
+            case "tinyint":
+                return "java.lang.Integer";
+            default:
+                return "java.lang.*";
+        }
+    }
+
+    /**
+     * 将数据库类型转换为Java类型
+     *
+     * @param dataType
+     * @return
+     */
+    private String getJavaType(String dataType) {
+        switch (dataType.toLowerCase()) {
+            case "varchar":
+            case "char":
+            case "text":
+                return "String";
+            case "timestamp":
+                return "Timestamp";
+            case "time":
+                return "Time";
+            case "datetime":
+            case "date":
+                return "Date";
+            case "decimal":
+                return "BigDecimal";
+            case "double":
+                return "Double";
+            case "float":
+                return "Float";
+            case "bigint":
+                return "Long";
+            case "int":
+            case "tinyint":
+                return "Integer";
+            default:
+                return "String";
+        }
     }
 
 

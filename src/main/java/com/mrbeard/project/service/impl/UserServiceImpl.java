@@ -17,12 +17,14 @@ import com.mrbeard.project.dto.response.ListUserRspDTO;
 import com.mrbeard.project.dto.response.UserInfoGetRspDTO;
 import com.mrbeard.project.dto.response.UserLoginRspDTO;
 import com.mrbeard.project.entity.User;
+import com.mrbeard.project.entity.UserTest;
 import com.mrbeard.project.entity.common.Result;
 import com.mrbeard.project.enums.ResultCodeEnum;
 import com.mrbeard.project.mapper.PermissionMapper;
 import com.mrbeard.project.mapper.RolePermissionMapper;
 import com.mrbeard.project.mapper.UserMapper;
 import com.mrbeard.project.mapper.UserRoleMapper;
+import com.mrbeard.project.mapper.UserTestMapper;
 import com.mrbeard.project.service.UserService;
 import com.mrbeard.project.utils.JwtUtil;
 import com.mrbeard.project.utils.RedisUtil;
@@ -67,6 +69,9 @@ public class UserServiceImpl implements UserService {
      */
     @Resource
     UserRoleMapper userRoleMapper;
+
+    @Resource
+    UserTestMapper userTestMapper;
 
     /**
      * 过期时间为一天
@@ -292,6 +297,15 @@ public class UserServiceImpl implements UserService {
         User user = JwtUtil.validToken(token);
         redisUtil.del("user:token:"+token);
 
+        return Result.returnSuccess();
+    }
+
+    @Override
+    public Result test() {
+        List<UserTest> userTests = new ArrayList<>();
+        userTests.add(new UserTest(12121245L, "useree", "", "", "", "", 1, "", new Date(),new Date(),new Date()));
+        userTests.add(new UserTest(12124323L, "userrr", "", "", "", "", 1, "", new Date(),new Date(),new Date()));
+        userTestMapper.insertBatchSelective(userTests);
         return Result.returnSuccess();
     }
 

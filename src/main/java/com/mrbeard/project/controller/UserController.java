@@ -123,4 +123,9 @@ public class UserController {
 
 
 
+    @PostMapping("/test")
+    public Result test(){
+        return userService.test();
+    }
+
 }

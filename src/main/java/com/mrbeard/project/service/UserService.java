@@ -80,4 +80,7 @@ public interface UserService {
      * @return
      */
     Result logout(HttpServletRequest request);
+
+    Result test();
+
 }

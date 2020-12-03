@@ -65,7 +65,7 @@
         </javaClientGenerator>
 
 
-        <table tableName="tb_role_permission" domainObjectName="RolePermission"
+        <table tableName="tb_user_test" domainObjectName="UserTest"
                enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="false">

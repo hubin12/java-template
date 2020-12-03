@@ -32,6 +32,11 @@ public class DatabaseTableColumn {
      */
     private String columnComment;
 
+    /**
+     * 主键标识
+     */
+    private String columnKey;
+
 
     @Override
     public boolean equals(Object o) {

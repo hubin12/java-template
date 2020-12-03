@@ -14,7 +14,8 @@
         SELECT
 	    COLUMN_NAME AS columnName,
 	    COLUMN_COMMENT AS columnComment,
-	    DATA_TYPE AS dataType
+	    DATA_TYPE AS dataType,
+	    COLUMN_KEY AS columnKey
         FROM
 	    INFORMATION_SCHEMA.COLUMNS
         WHERE
