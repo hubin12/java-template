@@ -1,6 +1,7 @@
 package com.mrbeard.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
@@ -186,14 +187,16 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         String packagePath = "com" + File.separator + "base" + File.separator + "project";
         //创建代码基础路径
         String codePath = File.separator + "download" + File.separator + user.getId() + File.separator + packagePath;
+        //获取字段信息
+        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
         //生成entity代码
-        generatorEntityCode(reqDTO, codePath);
+        generatorEntityCode(reqDTO, codePath, columns);
         //生成mapper层代码
-        generatorMapperCode(reqDTO, codePath);
+        generatorMapperCode(reqDTO, codePath, columns);
         //生成service层代码
-        generatorServiceCode(reqDTO, codePath);
+        generatorServiceCode(reqDTO, codePath, columns);
         //生成controller层代码
-        generatorControllerCode(reqDTO, codePath);
+        generatorControllerCode(reqDTO, codePath, columns);
         //设置下载路径
         return Result.returnSuccess();
     }
@@ -204,16 +207,13 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      * @param reqDTO
      * @param codePath
      */
-    private void generatorEntityCode(GeneratorJavaCodeDTO reqDTO, String codePath) {
+    private void generatorEntityCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
         //内容
         StringBuilder content = new StringBuilder();
 
         //生成文件夹
         String entityPath = "entity";
         String dir = getDir(codePath + File.separator + entityPath);
-
-        //获取表字段信息
-        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
 
         //包名
         content.append("package ").append("com.base.project.entity;\n\n");
@@ -246,8 +246,98 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         //写入文件
         String fileName = dir + File.separator + reqDTO.getEntityName() + ".java";
+        writeFileToPath(reqDTO, content.toString(), fileName);
+    }
+
+    /**
+     * 生成Controller层代码
+     *
+     * @param reqDTO
+     */
+    private void generatorControllerCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+        //内容
+        StringBuilder content = new StringBuilder();
+
+        //判断DTO是否存在
+        String dtoPath = "dto";
+        File file = new File(codePath + File.separator + dtoPath);
+
+        //生成文件夹
+        String controllerPath = "controller";
+        String dir = getDir(codePath + File.separator + controllerPath);
+
+        //包名
+        content.append("package\t").append("com.base.project.controller;\n\n");
+        content.append("import lombok.AllArgsConstructor;\n").append("import lombok.Data;\n");
+        content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors;\n\n");
+        //导包
+        for (DatabaseTableColumn column : columns) {
+            if (StrUtil.containsAny(column.getDataType(), "decimal", "datetime", "date", "timestamp", "time")) {
+                content.append("import ").append(getJavaPackageType(column.getDataType())).append(";\n\n");
+            }
+        }
+
+        //注释
+        content.append("/**\n").append(" * ").append(reqDTO.getEntityName()).append("\n").append(" *\n");
+        content.append(" * @author hubin\n").append(" * @date ");
+        content.append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" *\n").append(" */\n");
+
+        //注解
+        content.append("@Data\n").append("@Accessors(chain = true)\n");
+        content.append("@AllArgsConstructor\n").append("@NoArgsConstructor\n");
+
+        //主体
+        content.append("public class ").append(reqDTO.getEntityName()).append(" {\n");
+        for (DatabaseTableColumn column : columns) {
+            String columnName = removeSuffixAndToUp(column.getColumnName());
+            content.append("    /**\n     * ").append(column.getColumnComment()).append("\n     */\n");
+            content.append("    private ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
+        }
+        content.append("}");
+
+        //写入文件
+        String fileName = dir + File.separator + reqDTO.getEntityName() + ".java";
+        writeFileToPath(reqDTO, content.toString(), fileName);
+    }
+
+
+    /**
+     * 生成Service层代码
+     *
+     * @param reqDTO
+     */
+    private void generatorServiceCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+    }
+
+
+    /**
+     * 生成Mapper层代码
+     *
+     * @param reqDTO
+     */
+    private void generatorMapperCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+        //生成文件夹
+        String mapperPath = "mapper";
+        String dir = getDir(codePath + File.separator + mapperPath);
+        //生成XML
+        String xmlContent = getXmlMapper(reqDTO, columns);
+
+        //写入文件
+        String fileName = dir + File.separator + reqDTO.getEntityName() + "Mapper.xml";
+        writeFileToPath(reqDTO, xmlContent, fileName);
+
+    }
+
+    /**
+     * 写入文件到磁盘
+     *
+     * @param reqDTO
+     * @param xmlContent
+     * @param fileName
+     */
+    private void writeFileToPath(GeneratorJavaCodeDTO reqDTO, String xmlContent, String fileName) {
         File file = new File(fileName);
-        byte[] bytes = content.toString().getBytes();
+        byte[] bytes = xmlContent.getBytes();
         FileOutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file);
@@ -268,45 +358,12 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
     }
 
     /**
-     * 生成Controller层代码
-     *
-     * @param reqDTO
-     */
-    private void generatorControllerCode(GeneratorJavaCodeDTO reqDTO, String codePath) {
-    }
-
-
-    /**
-     * 生成Service层代码
-     *
-     * @param reqDTO
-     */
-    private void generatorServiceCode(GeneratorJavaCodeDTO reqDTO, String codePath) {
-    }
-
-
-    /**
-     * 生成Mapper层代码
-     *
-     * @param reqDTO
-     */
-    private void generatorMapperCode(GeneratorJavaCodeDTO reqDTO, String codePath) {
-        //生成文件夹
-        String mapperPath = "mapper";
-        String dir = getDir(codePath + File.separator + mapperPath);
-        //生成XML
-        String xmlContent = getXmlMapper(reqDTO);
-
-
-    }
-
-    /**
      * 生成xml字符串
      *
      * @param reqDTO
      * @return
      */
-    private String getXmlMapper(GeneratorJavaCodeDTO reqDTO) {
+    private String getXmlMapper(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         //xml所有数据
         StringBuilder xmlContent = new StringBuilder();
 
@@ -318,40 +375,39 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         //BaseCloumnList
         StringBuilder baseColumnContent = new StringBuilder();
-        baseColumnContent.append("<sql id=\"Base_Column_List\">\n");
+        baseColumnContent.append("\t<sql id=\"Base_Column_List\">\n");
 
         //命名空间
-        resultMapContent.append("<mapper namespace=\"com.base.project.mapper.").append(reqDTO.getEntityName()).append("Mapper\">\n");
+        resultMapContent.append("<mapper namespace=\"com.base.project.mapper.").append(reqDTO.getEntityName()).append("Mapper\">\n\n");
         //BaseResultMap
-        resultMapContent.append("<resultMap id=\"BaseResultMap\" type=\"com.mrbeard.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
-        resultMapContent.append("<constructor>\n");
+        resultMapContent.append("\t<resultMap id=\"BaseResultMap\" type=\"com.mrbeard.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        resultMapContent.append("\t\t<constructor>\n");
 
         //获取表字段信息
         StringBuilder idContent = new StringBuilder();
         StringBuilder argContent = new StringBuilder();
-        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
         StringBuilder cloumnList = new StringBuilder();
         for (DatabaseTableColumn column : columns) {
             if (ObjectUtil.isNotEmpty(column.getColumnKey())) {
-                idContent.append("<idArg column=\"").append(column.getColumnName())
+                idContent.append("\t\t\t<idArg column=\"").append(column.getColumnName())
                         .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
                         .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
             } else {
-                argContent.append("<arg column=\"").append(column.getColumnName())
+                argContent.append("\t\t\t<arg column=\"").append(column.getColumnName())
                         .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
                         .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
             }
             cloumnList.append(column.getColumnName()).append(",");
         }
-        baseColumnContent.append(cloumnList.toString(), 0, cloumnList.toString().length() - 1).append("\n").append("</sql>\n");
+        baseColumnContent.append("\t\t").append(cloumnList.toString(), 0, cloumnList.toString().length() - 1).append("\n").append("\t</sql>\n");
         resultMapContent.append(idContent).append(argContent);
-        resultMapContent.append("</constructor>\n");
+        resultMapContent.append("\t\t</constructor>\n").append("\t</resultMap>\n");
         xmlContent.append(resultMapContent).append(baseColumnContent);
 
         //根据返回的需要生成的mapper方法进行生成
-        String sqlMethod = setSqlMethods(reqDTO);
-
-        return null;
+        String sqlMethod = setSqlMethods(reqDTO, columns);
+        xmlContent.append(sqlMethod).append("</mapper>\n");
+        return xmlContent.toString();
     }
 
     /**
@@ -360,67 +416,261 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      * @param reqDTO
      * @return
      */
-    private String setSqlMethods(GeneratorJavaCodeDTO reqDTO) {
+    private String setSqlMethods(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         List<String> mapperNames = reqDTO.getMapperNames();
         //条件插入
+        String insertSelective = "";
         if (mapperNames.contains("insertSelective")) {
-            String insertSelective = generatorInsertSelective(reqDTO);
+            insertSelective = generatorInsertSelective(reqDTO, columns);
         }
-        if(mapperNames.contains("insertBatch")) {
-            String insertBatch = generatorBatchInsert(reqDTO);
+        //批量插入
+        String insertBatch = "";
+        if (mapperNames.contains("insertBatch")) {
+            insertBatch = generatorBatchInsert(reqDTO, columns);
         }
-        return null;
+        //条件删除
+        String deleteSelective = "";
+        if (mapperNames.contains("deleteSelective")) {
+            deleteSelective = generatorDeleteSelective(reqDTO, columns);
+        }
+        //批量条件删除
+        String deleteBatchSelective = "";
+        if (mapperNames.contains("deleteBatchSelective")) {
+            deleteBatchSelective = generatorDeleteBatchSelective(reqDTO, columns);
+        }
+        //条件更新
+        String updateSelective = "";
+        if (mapperNames.contains("updateSelective")) {
+            updateSelective = generatorUpdateSelective(reqDTO, columns);
+        }
+        //批量条件更新
+        String updateBatchSelective = "";
+        if (mapperNames.contains("updateBatchSelective")) {
+            updateBatchSelective = generatorUpdateBatchSelective(reqDTO, columns);
+        }
+        //条件查询
+        String selectSelective = "";
+        if (mapperNames.contains("selectSelective")) {
+            selectSelective = generatorSelectSelective(reqDTO, columns);
+        }
+        //批量条件查询
+        String selectBatchSelective = "";
+        if (mapperNames.contains("selectBatchSelective")) {
+            selectBatchSelective = generatorSelectBatchSelective(reqDTO, columns);
+        }
+        return insertSelective + insertBatch
+                + deleteSelective + deleteBatchSelective
+                + updateSelective + updateBatchSelective
+                + selectSelective + selectBatchSelective;
     }
 
     /**
-     * 生成批量条件插入
+     * 生成批量条件查询SQL
      *
      * @param reqDTO
      * @return
      */
-    private String generatorBatchInsert(GeneratorJavaCodeDTO reqDTO) {
+    private String generatorSelectBatchSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         StringBuilder content = new StringBuilder();
-        content.append("<insert id=\"insertBatch\" parameterType=\"java.util.List\"");
-        content.append("insert into ").append(reqDTO.getTableName()).append("(\n");
-        //获取表信息
-        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
-        //值信息
-        StringBuilder valueContent = new StringBuilder();
-        StringBuilder foreachContent = new StringBuilder();
-        foreachContent.append("<foreach collection=\"list\" item=\"item\" open=\"(\" separator=\"),(\" close=\")\">\n");
+        content.append("\t<select id=\"selectBatchSelective\" resultMap=\"BaseResultMap\">\n");
+        content.append("\t\tselect\n").append("\t\t<include refid=\"Base_Column_List\"/>\n");
+        content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\twhere 1=0\n");
+        content.append("\t\t<trim prefix=\"or\">\n").append("\t\t\t<foreach collection=\"list\" open=\"(\" separator=\")or(\" close=\")\" item=\"item\">\n");
+        content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
-            content.append(column.getDataType()).append(",");
-            foreachContent.append("#{item.").append(removeSuffixAndToUp(column.getDataType())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},");
+            content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null and item.").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
+                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                    .append(column.getDataType().toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
         }
-        content.append(valueContent.toString(), 0, valueContent.toString().length() -1).append(") values\n");
-        content.append(valueContent).append("</trim>\n").append("</insert>\n");
+        content.append("\t\t\t\t</trim>\n").append("\t\t\t</foreach>\n").append("\t\t</trim>\n").append("\t</select>\n\n");
         return content.toString();
     }
 
     /**
-     * 生成条件插入Mapper
+     * 生成条件查询SQL
      *
      * @param reqDTO
      * @return
      */
-    private String generatorInsertSelective(GeneratorJavaCodeDTO reqDTO) {
+    private String generatorSelectSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         StringBuilder content = new StringBuilder();
-        content.append("<insert id=\"insertSelective\" parameterType=\"com.base.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
-        content.append("insert into ").append(reqDTO.getTableName()).append("\n");
-        content.append("<trim prefix=\"(\" suffix=\")\" suffixOverrides=\",\">\n");
-        //获取表信息
-        List<DatabaseTableColumn> columns = dataBasesMapper.selectTableColumns(reqDTO);
+        content.append("\t<select id=\"selectSelective\" resultMap=\"BaseResultMap\">\n");
+        content.append("\t\tselect\n").append("\t\t<include refid=\"Base_Column_List\"/>\n");
+        content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\t<where>\n");
+        for (DatabaseTableColumn column : columns) {
+            content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != ''\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
+                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                    .append(column.getDataType().toUpperCase()).append("}\n\t\t</if>\n");
+        }
+        content.append("\t\t</where>\n").append("\t</select>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成批量条件更新SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorUpdateBatchSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<update id=\"updateBatchSelective\" parameterType=\"java.util.List\">\n");
+        content.append("\t\tupdate ").append(reqDTO.getTableName()).append("\n");
+        content.append("\t\t\t<trim prefix=\"set\" suffixOverrides=\",\">\n");
+        StringBuilder keyBuilder = new StringBuilder();
+        for (DatabaseTableColumn column : columns) {
+            if (ObjectUtil.isNotEmpty(column.getColumnKey())) {
+                keyBuilder.append(column.getColumnName()).append("=#{i.").append(removeSuffixAndToUp(column.getColumnName())).append("} and ");
+            }
+            continue;
+        }
+        String keyString = keyBuilder.toString().trim().substring(0, keyBuilder.toString().trim().length() - 3);
+
+        for (DatabaseTableColumn column : columns) {
+            if (ObjectUtil.isEmpty(column.getColumnKey())) {
+                content.append("\t\t\t\t<trim prefix=\"").append(column.getColumnName()).append(" = case\" suffix=\"end,\">\n")
+                        .append("\t\t\t\t\t<foreach collection=\"list\" item=\"i\" index=\"index\">\n")
+                        .append("\t\t\t\t\t\t<if test=\"i.").append(removeSuffixAndToUp(column.getColumnName())).append("!=null\">\n")
+                        .append("\t\t\t\t\t\t\twhen ").append(keyString).append(" then #{i.")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append("}\n\t\t\t\t\t\t</if>\n")
+                        .append("\t\t\t\t\t</foreach>\n").append("\t\t\t\t</trim>\n");
+            }
+            continue;
+        }
+        content.append("\t\t\t</trim>\n").append("\t\twhere\n").append("\t\t<foreach collection=\"list\" separator=\"or\" item=\"i\" index=\"index\">\n");
+        content.append("\t\t\t").append(keyString).append("\n").append("\t\t</foreach>\n").append("\t</update>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成条件更新SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorUpdateSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<update id=\"updateSelective\" parameterType=\"com.mrbeard.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        content.append("\t\tupdate ").append(reqDTO.getTableName()).append("\n");
+        content.append("\t\t<set>\n");
+        //保存主键信息
+        List<DatabaseTableColumn> keys = new ArrayList<>();
+        for (DatabaseTableColumn column : columns) {
+            if (ObjectUtil.isEmpty(column.getColumnKey())) {
+                content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(" != ''\">\n\t\t\t\t")
+                        .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n\t\t\t</if>\n");
+            } else {
+                keys.add(column);
+            }
+        }
+        content.append("\t\t</set>\n\t\twhere ");
+        StringBuilder keyString = new StringBuilder();
+        for (DatabaseTableColumn key : keys) {
+            keyString.append(key.getColumnName()).append(" = #{").append(removeSuffixAndToUp(key.getColumnName())).append(",jdbcType=").append(key.getDataType().toUpperCase()).append("} and ");
+        }
+        content.append(keyString.toString().trim(), 0, keyString.toString().trim().length() - 3).append("\n");
+        content.append("\t</update>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成批量条件删除SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorDeleteBatchSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<delete id=\"deleteBatchSelective\" parameterType=\"java.util.List\">\n");
+        content.append("\t\tdelete from ").append(reqDTO.getTableName()).append("\n").append("\t\twhere 1=0\n");
+        content.append("\t\t<trim prefix=\"or (\" suffix=\")\" prefixOverrides=\"and\">\n");
+        content.append("\t\t\t<foreach collection=\"list\" item=\"item\" open=\"(\" close=\")\" separator=\")or(\">\n");
+        content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
+        for (DatabaseTableColumn column : columns) {
+            content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
+                    .append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
+                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
+        }
+        content.append("\t\t\t\t</trim>\n").append("\t\t\t</foreach>\n").append("\t\t</trim>\n").append("\t</delete>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成条件删除SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorDeleteSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<delete id=\"deleteSelective\" parameterType=\"com.mrbeard.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        content.append("\t\tdelete from ").append(reqDTO.getTableName()).append("\n").append("\t\twhere 1=0\n");
+        content.append("\t\t<trim prefix=\"or (\" suffix=\")\" prefixOverrides=\"and\">\n");
+        for (DatabaseTableColumn column : columns) {
+            content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null\">\n\t\t\t\tand ")
+                    .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("}\n\t\t\t</if>\n");
+        }
+        content.append("\t\t</trim>\n\t</delete>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成批量条件插入SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorBatchInsert(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<insert id=\"insertBatch\" parameterType=\"java.util.List\">\n");
+        content.append("\t\tinsert into ").append(reqDTO.getTableName()).append("(\n");
+        //值信息
+        StringBuilder valueContent = new StringBuilder();
+        StringBuilder foreachContent = new StringBuilder();
+        foreachContent.append("\t\t<foreach collection=\"list\" item=\"item\" open=\"(\" separator=\"),(\" close=\")\">\n");
+        foreachContent.append("\t\t\t\t<trim suffixOverrides=\",\">\n");
+        for (DatabaseTableColumn column : columns) {
+            valueContent.append(column.getColumnName()).append(",");
+            foreachContent.append("\t\t\t\t#{item.").append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n");
+        }
+        content.append("\t\t\t").append(valueContent.toString(), 0, valueContent.toString().length() - 1).append(") values\n");
+        content.append(foreachContent);
+        content.append("\t\t\t\t</trim>\n").append("\t\t</foreach>\n").append("\t</insert>\n\n");
+        return content.toString();
+    }
+
+    /**
+     * 生成条件插入SQL
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String generatorInsertSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("\t<insert id=\"insertSelective\" parameterType=\"com.base.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
+        content.append("\t\tinsert into ").append(reqDTO.getTableName()).append("\n");
+        content.append("\t\t<trim prefix=\"(\" suffix=\")\" suffixOverrides=\",\">\n");
         //值信息
         StringBuilder valueContent = new StringBuilder();
         for (DatabaseTableColumn column : columns) {
-            content.append(" <if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null\">\n        ").append(column.getColumnName()).append(",\n      </if>\n");
-            valueContent.append("<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null\">\n        #{").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n      </if>\n");
+            content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != ''").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
+            valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(" != ''").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
+                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n\t\t\t</if>\n");
         }
-        content.append("</trim>\n").append("<trim prefix=\"values (\" suffix=\")\" suffixOverrides=\",\">\n");
-        content.append(valueContent).append("</trim>\n").append("</insert>\n");
+        content.append("\t\t</trim>\n").append("\t\t<trim prefix=\"values (\" suffix=\")\" suffixOverrides=\",\">\n");
+        content.append(valueContent).append("\t\t</trim>\n").append("\t</insert>\n\n");
         return content.toString();
     }
 

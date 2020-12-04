@@ -303,10 +303,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result test() {
         List<UserTest> userTests = new ArrayList<>();
-        userTests.add(new UserTest(12121245L, "useree", "", "", "", "", 1, "", new Date(),new Date(),new Date()));
-        userTests.add(new UserTest(12124323L, "userrr", "", "", "", "", 1, "", new Date(),new Date(),new Date()));
-        userTestMapper.insertBatchSelective(userTests);
-        return Result.returnSuccess();
+        userTests.add(new UserTest(12121245L, "useree", "12", "", "", "", 1, "", null,null,null));
+        userTests.add(new UserTest(12124323L, "userrr", "1212", "", "", "", 1, "", null,null,null));
+        //userTests.add(new UserTest().setUserName("user"));
+        //userTests.add(new UserTest().setUserName("root"));
+        //UserTest te = new UserTest(12124323L, "userrr", "", "", "", "", 1, "", null,null,null);
+        int i = userTestMapper.updateBatchSelective(userTests);
+        return Result.returnSuccessWithData(i);
     }
 
 }
