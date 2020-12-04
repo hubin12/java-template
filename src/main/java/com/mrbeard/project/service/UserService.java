@@ -81,6 +81,4 @@ public interface UserService {
      */
     Result logout(HttpServletRequest request);
 
-    Result test();
-
 }

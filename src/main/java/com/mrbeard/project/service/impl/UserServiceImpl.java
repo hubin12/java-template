@@ -11,20 +11,15 @@ import com.mrbeard.project.dto.request.DeleteUserInfoReqDTO;
 import com.mrbeard.project.dto.request.ListUserReqDTO;
 import com.mrbeard.project.dto.request.SaveOrUpdateUserInfoReqDTO;
 import com.mrbeard.project.dto.request.UpdatePasswordReqDTO;
-import com.mrbeard.project.dto.request.UserInfoGetReqDTO;
 import com.mrbeard.project.dto.request.UserLoginReqDTO;
 import com.mrbeard.project.dto.response.ListUserRspDTO;
 import com.mrbeard.project.dto.response.UserInfoGetRspDTO;
 import com.mrbeard.project.dto.response.UserLoginRspDTO;
 import com.mrbeard.project.entity.User;
-import com.mrbeard.project.entity.UserTest;
 import com.mrbeard.project.entity.common.Result;
 import com.mrbeard.project.enums.ResultCodeEnum;
-import com.mrbeard.project.mapper.PermissionMapper;
-import com.mrbeard.project.mapper.RolePermissionMapper;
 import com.mrbeard.project.mapper.UserMapper;
 import com.mrbeard.project.mapper.UserRoleMapper;
-import com.mrbeard.project.mapper.UserTestMapper;
 import com.mrbeard.project.service.UserService;
 import com.mrbeard.project.utils.JwtUtil;
 import com.mrbeard.project.utils.RedisUtil;
@@ -37,9 +32,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -69,9 +62,6 @@ public class UserServiceImpl implements UserService {
      */
     @Resource
     UserRoleMapper userRoleMapper;
-
-    @Resource
-    UserTestMapper userTestMapper;
 
     /**
      * 过期时间为一天
@@ -298,18 +288,6 @@ public class UserServiceImpl implements UserService {
         redisUtil.del("user:token:"+token);
 
         return Result.returnSuccess();
-    }
-
-    @Override
-    public Result test() {
-        List<UserTest> userTests = new ArrayList<>();
-        userTests.add(new UserTest(12121245L, "useree", "12", "", "", "", 1, "", null,null,null));
-        userTests.add(new UserTest(12124323L, "userrr", "1212", "", "", "", 1, "", null,null,null));
-        //userTests.add(new UserTest().setUserName("user"));
-        //userTests.add(new UserTest().setUserName("root"));
-        //UserTest te = new UserTest(12124323L, "userrr", "", "", "", "", 1, "", null,null,null);
-        int i = userTestMapper.updateBatchSelective(userTests);
-        return Result.returnSuccessWithData(i);
     }
 
 }
