@@ -289,6 +289,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         content.append("package com.base.project.controller;\n\n");
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getControllerName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import org.springframework.web.bind.annotation.RestController;\n");
         content.append("import org.springframework.web.bind.annotation.PostMapping;\n");
@@ -297,7 +298,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@RestController\n");
-        content.append("public class ").append(reqDTO.getEntityName()).append("Controller {\n");
+        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append(" {\n");
         content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Service\n").append("\t */\n").append("\t@Resource\n");
         content.append("\t").append(reqDTO.getEntityName()).append("Service ").append(firstToLowCase(reqDTO.getEntityName())).append("Service;\n\n");
         //条件插入
@@ -403,12 +404,16 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("package com.base.project.service.impl;\n\n");
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
-        content.append("import cn.hutool.core.bean.BeanUtil;\n");
+        content.append("import com.mrbeard.project.mapper.").append(reqDTO.getEntityName()).append("Mapper;\n");
+        content.append("import org.springframework.stereotype.Service;\n");
+        content.append("import javax.annotation.Resource;\n");
+        content.append("import cn.hutool.core.bean.BeanUtil;\n\n");
+        content.append("import java.util.ArrayList;\n");
         content.append("import java.util.List;\n\n");
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@Service\n");
-        content.append("public class ").append(reqDTO.getEntityName()).append("ServiceImpl implements ").append(reqDTO.getEntityName()).append("Service {\n");
+        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append("Impl implements ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(" {\n");
         content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Mapper\n").append("\t */\n").append("\t@Resource\n");
         content.append("\t").append(reqDTO.getEntityName()).append("Mapper ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper;\n\n");
         //条件插入
@@ -598,7 +603,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import java.util.List;\n\n");
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
-        content.append("public interface ").append(reqDTO.getEntityName()).append("Service {\n");
+        content.append("public interface ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(" {\n");
         //条件插入
         if (reqDTO.getMapperNames().contains("insertSelective")) {
             content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
