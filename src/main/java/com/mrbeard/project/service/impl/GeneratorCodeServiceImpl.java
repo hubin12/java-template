@@ -194,11 +194,11 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         //生成mapper层代码
         generatorMapperCode(reqDTO, codePath, columns);
         //生成service层代码
-        if(reqDTO.getIsGeneratorService() == 1){
+        if (reqDTO.getIsGeneratorService() == 1) {
             generatorServiceCode(reqDTO, codePath, columns);
         }
         //生成controller层代码
-        if(reqDTO.getIsGeneratorController() == 1){
+        if (reqDTO.getIsGeneratorController() == 1) {
             generatorControllerCode(reqDTO, codePath, columns);
         }
         //设置下载路径
@@ -277,7 +277,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         //判断Service是否存在
         String servicePath = "service";
-        File serviceFile = new File(codePath + File.separator + dtoPath);
+        File serviceFile = new File(codePath + File.separator + servicePath + File.separator + reqDTO.getEntityName() + "Service.java");
         if (!serviceFile.exists()) {
             //生成service
             generatorServiceCode(reqDTO, codePath, columns);
@@ -290,7 +290,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import org.springframework.web.bind.annotation.PostMapping;\n");
         content.append("import javax.annotation.Resource;\n");
         content.append("import java.util.List;\n\n");
-        content.append("/**\n").append(" * ").append(reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
+        content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@RestController\n");
         content.append("public class ").append(reqDTO.getEntityName()).append("Controller {\n");
@@ -348,7 +348,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         }
         //批量条件更新
         if (reqDTO.getMapperNames().contains("updateBatchSelective")) {
-            content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
+            content.append("\t/**\n").append("\t * 批量条件更新\n").append("\t *\n")
                     .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/updateBatchSelective\")\n");
             content.append("\tpublic int updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
@@ -383,7 +383,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         String dir = getDir(codePath + File.separator + controllerPath);
 
         //写入文件
-        String serviceFileName = dir + File.separator + reqDTO.getControllerName() + ".java";
+        String serviceFileName = dir + File.separator + (ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() + "Controller" : reqDTO.getControllerName()) + ".java";
         writeFileToPath(reqDTO, content.toString(), serviceFileName);
     }
 
@@ -401,7 +401,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import cn.hutool.core.bean.BeanUtil;\n");
         content.append("import java.util.List;\n\n");
-        content.append("/**\n").append(" * ").append(reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
+        content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@Service\n");
         content.append("public class ").append(reqDTO.getEntityName()).append("ServiceImpl implements ").append(reqDTO.getEntityName()).append("Service {\n");
@@ -510,7 +510,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         String dir = getDir(codePath + File.separator + serviceImplPath);
 
         //写入文件
-        String serviceFileName = dir + File.separator + reqDTO.getServiceName() + "Impl.java";
+        String serviceFileName = dir + File.separator + (ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()) + "Impl.java";
         writeFileToPath(reqDTO, content.toString(), serviceFileName);
     }
 
@@ -592,7 +592,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import java.util.List;\n\n");
-        content.append("/**\n").append(" * ").append(reqDTO.getServiceName()).append("\n").append(" * @author hubin\n");
+        content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("public interface ").append(reqDTO.getEntityName()).append("Service {\n");
         //条件插入
@@ -650,11 +650,11 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         String dir = getDir(codePath + File.separator + mapperPath);
 
         //写入文件
-        String serviceFileName = dir + File.separator + reqDTO.getServiceName() + ".java";
+        String serviceFileName = dir + File.separator + (ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()) + ".java";
         writeFileToPath(reqDTO, content.toString(), serviceFileName);
 
         //impl
-        generatorServiceImplCode(reqDTO,codePath,columns);
+        generatorServiceImplCode(reqDTO, codePath, columns);
     }
 
 
