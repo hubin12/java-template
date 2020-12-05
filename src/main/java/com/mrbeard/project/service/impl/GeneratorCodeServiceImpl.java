@@ -194,9 +194,13 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         //生成mapper层代码
         generatorMapperCode(reqDTO, codePath, columns);
         //生成service层代码
-        generatorServiceCode(reqDTO, codePath, columns);
+        if(reqDTO.getIsGeneratorService() == 1){
+            generatorServiceCode(reqDTO, codePath, columns);
+        }
         //生成controller层代码
-        generatorControllerCode(reqDTO, codePath, columns);
+        if(reqDTO.getIsGeneratorController() == 1){
+            generatorControllerCode(reqDTO, codePath, columns);
+        }
         //设置下载路径
         return Result.returnSuccess();
     }
@@ -218,14 +222,18 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         //包名
         content.append("package ").append("com.base.project.entity;\n\n");
         content.append("import lombok.AllArgsConstructor;\n").append("import lombok.Data;\n");
-        content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors; \n\n");
+        content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors;\n\n");
         //导包
+        String importString = new String();
         for (DatabaseTableColumn column : columns) {
             if (StrUtil.containsAny(column.getDataType(), "decimal", "datetime", "date", "timestamp", "time")) {
-                content.append("import ").append(getJavaPackageType(column.getDataType())).append(";\n\n");
+                if (importString != null && importString.contains("import " + getJavaPackageType(column.getDataType()) + ";\n\n")) {
+                    continue;
+                }
+                importString = importString + "import " + getJavaPackageType(column.getDataType()) + ";\n\n";
             }
         }
-
+        content.append(importString);
         //注释
         content.append("/**\n").append(" * ").append(reqDTO.getEntityName()).append("\n").append(" *\n");
         content.append(" * @author hubin\n").append(" * @date ");
@@ -239,8 +247,8 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("public class ").append(reqDTO.getEntityName()).append(" {\n");
         for (DatabaseTableColumn column : columns) {
             String columnName = removeSuffixAndToUp(column.getColumnName());
-            content.append("    /**\n     * ").append(column.getColumnComment()).append("\n     */\n");
-            content.append("    private ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
+            content.append("\t/**\n\t * ").append(column.getColumnComment()).append("\n\t */\n");
+            content.append("\tprivate ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
         }
         content.append("}");
 
@@ -260,25 +268,297 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         //判断DTO是否存在
         String dtoPath = "dto";
-        File file = new File(codePath + File.separator + dtoPath);
+        File dtoFile = new File(codePath + File.separator + dtoPath + File.separator + reqDTO.getEntityName() + "DTO.java");
+        if (!dtoFile.exists()) {
+            //生成DTO
+            generatorDtoCode(reqDTO, codePath, columns);
+        }
+
+
+        //判断Service是否存在
+        String servicePath = "service";
+        File serviceFile = new File(codePath + File.separator + dtoPath);
+        if (!serviceFile.exists()) {
+            //生成service
+            generatorServiceCode(reqDTO, codePath, columns);
+        }
+
+        content.append("package com.base.project.controller;\n\n");
+        content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
+        content.append("import org.springframework.web.bind.annotation.RestController;\n");
+        content.append("import org.springframework.web.bind.annotation.PostMapping;\n");
+        content.append("import javax.annotation.Resource;\n");
+        content.append("import java.util.List;\n\n");
+        content.append("/**\n").append(" * ").append(reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
+        content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
+        content.append("@RestController\n");
+        content.append("public class ").append(reqDTO.getEntityName()).append("Controller {\n");
+        content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Service\n").append("\t */\n").append("\t@Resource\n");
+        content.append("\t").append(reqDTO.getEntityName()).append("Service ").append(firstToLowCase(reqDTO.getEntityName())).append("Service;\n\n");
+        //条件插入
+        if (reqDTO.getMapperNames().contains("insertSelective")) {
+            content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/insertSelective\")\n");
+            content.append("\tpublic int insertSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.insertSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //批量插入
+        if (reqDTO.getMapperNames().contains("insertBatch")) {
+            content.append("\t/**\n").append("\t * 批量插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/insertBatch\")\n");
+            content.append("\tpublic int insertBatch(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.insertBatch(record);\n");
+            content.append("\t}\n\n");
+        }
+        //条件删除
+        if (reqDTO.getMapperNames().contains("deleteSelective")) {
+            content.append("\t/**\n").append("\t * 条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/deleteSelective\")\n");
+            content.append("\tpublic int deleteSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// 调用Service \n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.deleteSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件删除
+        if (reqDTO.getMapperNames().contains("deleteBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/deleteBatchSelective\")\n");
+            content.append("\tpublic int deleteBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.deleteBatchSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //条件更新
+        if (reqDTO.getMapperNames().contains("updateSelective")) {
+            content.append("\t/**\n").append("\t * 条件更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/updateSelective\")\n");
+            content.append("\tpublic int updateSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.updateSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件更新
+        if (reqDTO.getMapperNames().contains("updateBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/updateBatchSelective\")\n");
+            content.append("\tpublic int updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.updateBatchSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //条件查询
+        if (reqDTO.getMapperNames().contains("selectSelective")) {
+            content.append("\t/**\n").append("\t * 条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询数据\n").append("\t * @return 返回的数据\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/selectSelective\")\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.selectSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件查询
+        if (reqDTO.getMapperNames().contains("selectBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
+                    .append("\t@PostMapping(value = \"/selectBatchSelective\")\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// 调用Service\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.selectBatchSelective(record);\n");
+            content.append("\t}\n\n");
+        }
+        content.append("}");
 
         //生成文件夹
         String controllerPath = "controller";
         String dir = getDir(codePath + File.separator + controllerPath);
 
+        //写入文件
+        String serviceFileName = dir + File.separator + reqDTO.getControllerName() + ".java";
+        writeFileToPath(reqDTO, content.toString(), serviceFileName);
+    }
+
+    /**
+     * 生成ServiceImpl
+     *
+     * @param reqDTO
+     * @param codePath
+     * @param columns
+     */
+    private void generatorServiceImplCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("package com.base.project.service.impl;\n\n");
+        content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
+        content.append("import cn.hutool.core.bean.BeanUtil;\n");
+        content.append("import java.util.List;\n\n");
+        content.append("/**\n").append(" * ").append(reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
+        content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
+        content.append("@Service\n");
+        content.append("public class ").append(reqDTO.getEntityName()).append("ServiceImpl implements ").append(reqDTO.getEntityName()).append("Service {\n");
+        content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Mapper\n").append("\t */\n").append("\t@Resource\n");
+        content.append("\t").append(reqDTO.getEntityName()).append("Mapper ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper;\n\n");
+        //条件插入
+        if (reqDTO.getMapperNames().contains("insertSelective")) {
+            content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int insertSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\t").append(reqDTO.getEntityName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append(" = new ").append(reqDTO.getEntityName()).append("();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.insertSelective(").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t}\n\n");
+        }
+        //批量插入
+        if (reqDTO.getMapperNames().contains("insertBatch")) {
+            content.append("\t/**\n").append("\t * 批量插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int insertBatch(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.insertBatch(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t}\n\n");
+        }
+        //条件删除
+        if (reqDTO.getMapperNames().contains("deleteSelective")) {
+            content.append("\t/**\n").append("\t * 条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int deleteSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\t").append(reqDTO.getEntityName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append(" = new ").append(reqDTO.getEntityName()).append("();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.deleteSelective(").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件删除
+        if (reqDTO.getMapperNames().contains("deleteBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int deleteBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.deleteBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t}\n\n");
+        }
+        //条件更新
+        if (reqDTO.getMapperNames().contains("updateSelective")) {
+            content.append("\t/**\n").append("\t * 条件更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int updateSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\t").append(reqDTO.getEntityName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append(" = new ").append(reqDTO.getEntityName()).append("();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.updateSelective(").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件更新
+        if (reqDTO.getMapperNames().contains("updateBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic int updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.updateBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t}\n\n");
+        }
+        //条件查询
+        if (reqDTO.getMapperNames().contains("selectSelective")) {
+            content.append("\t/**\n").append("\t * 条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询数据\n").append("\t * @return 返回的数据\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\t").append(reqDTO.getEntityName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append(" = new ").append(reqDTO.getEntityName()).append("();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.selectSelective(").append(firstToLowCase(reqDTO.getEntityName())).append(");\n");
+            content.append("\t}\n\n");
+        }
+        //批量条件查询
+        if (reqDTO.getMapperNames().contains("selectBatchSelective")) {
+            content.append("\t/**\n").append("\t * 批量条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n").append("\t@Override\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\t\t// DTO转成实体类\n");
+            content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
+            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\t// 调用Mapper\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.selectBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t}\n\n");
+        }
+        content.append("}");
+
+        //生成文件夹
+        String serviceImplPath = "service" + File.separator + "impl";
+        String dir = getDir(codePath + File.separator + serviceImplPath);
+
+        //写入文件
+        String serviceFileName = dir + File.separator + reqDTO.getServiceName() + "Impl.java";
+        writeFileToPath(reqDTO, content.toString(), serviceFileName);
+    }
+
+    /**
+     * 将字符串的第一个字母转成小学其余不变
+     *
+     * @param entityName
+     * @return
+     */
+    private String firstToLowCase(String entityName) {
+        String start = entityName.substring(0, 1).toLowerCase();
+        String end = entityName.substring(1);
+        return start + end;
+    }
+
+    /**
+     * 生成DTO
+     *
+     * @param reqDTO
+     * @param codePath
+     * @param columns
+     */
+    private void generatorDtoCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+        //内容
+        StringBuilder content = new StringBuilder();
+
+        //生成文件夹
+        String entityPath = "dto";
+        String dir = getDir(codePath + File.separator + entityPath);
+
         //包名
-        content.append("package\t").append("com.base.project.controller;\n\n");
+        content.append("package ").append("com.base.project.dto;\n\n");
         content.append("import lombok.AllArgsConstructor;\n").append("import lombok.Data;\n");
         content.append("import lombok.NoArgsConstructor;\n").append("import lombok.experimental.Accessors;\n\n");
         //导包
+        String importString = new String();
         for (DatabaseTableColumn column : columns) {
             if (StrUtil.containsAny(column.getDataType(), "decimal", "datetime", "date", "timestamp", "time")) {
-                content.append("import ").append(getJavaPackageType(column.getDataType())).append(";\n\n");
+                if (importString != null && importString.contains("import " + getJavaPackageType(column.getDataType()) + ";\n\n")) {
+                    continue;
+                }
+                importString = importString + "import " + getJavaPackageType(column.getDataType()) + ";\n\n";
             }
         }
+        content.append(importString);
 
         //注释
-        content.append("/**\n").append(" * ").append(reqDTO.getEntityName()).append("\n").append(" *\n");
+        content.append("/**\n").append(" * ").append(reqDTO.getEntityName()).append("DTO\n").append(" *\n");
         content.append(" * @author hubin\n").append(" * @date ");
         content.append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" *\n").append(" */\n");
 
@@ -287,16 +567,16 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("@AllArgsConstructor\n").append("@NoArgsConstructor\n");
 
         //主体
-        content.append("public class ").append(reqDTO.getEntityName()).append(" {\n");
+        content.append("public class ").append(reqDTO.getEntityName()).append("DTO {\n");
         for (DatabaseTableColumn column : columns) {
             String columnName = removeSuffixAndToUp(column.getColumnName());
-            content.append("    /**\n     * ").append(column.getColumnComment()).append("\n     */\n");
-            content.append("    private ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
+            content.append("\t/**\n\t * ").append(column.getColumnComment()).append("\n\t */\n");
+            content.append("\tprivate ").append(getJavaType(column.getDataType())).append(" ").append(columnName).append(";\n");
         }
         content.append("}");
 
         //写入文件
-        String fileName = dir + File.separator + reqDTO.getEntityName() + ".java";
+        String fileName = dir + File.separator + reqDTO.getEntityName() + "DTO.java";
         writeFileToPath(reqDTO, content.toString(), fileName);
     }
 
@@ -307,6 +587,74 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      * @param reqDTO
      */
     private void generatorServiceCode(GeneratorJavaCodeDTO reqDTO, String codePath, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("package com.base.project.service;\n\n");
+        content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
+        content.append("import java.util.List;\n\n");
+        content.append("/**\n").append(" * ").append(reqDTO.getServiceName()).append("\n").append(" * @author hubin\n");
+        content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
+        content.append("public interface ").append(reqDTO.getEntityName()).append("Service {\n");
+        //条件插入
+        if (reqDTO.getMapperNames().contains("insertSelective")) {
+            content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint insertSelective(" + reqDTO.getEntityName() + "DTO record);\n\n");
+        }
+        //批量插入
+        if (reqDTO.getMapperNames().contains("insertBatch")) {
+            content.append("\t/**\n").append("\t * 批量插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint insertBatch(List<" + reqDTO.getEntityName() + "DTO> record);\n\n");
+        }
+        //条件删除
+        if (reqDTO.getMapperNames().contains("deleteSelective")) {
+            content.append("\t/**\n").append("\t * 条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint deleteSelective(" + reqDTO.getEntityName() + "DTO record);\n\n");
+        }
+        //批量条件删除
+        if (reqDTO.getMapperNames().contains("deleteBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint deleteBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record);\n\n");
+        }
+        //条件更新
+        if (reqDTO.getMapperNames().contains("updateSelective")) {
+            content.append("\t/**\n").append("\t * 条件更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint updateSelective(" + reqDTO.getEntityName() + "DTO record);\n\n");
+        }
+        //批量条件更新
+        if (reqDTO.getMapperNames().contains("updateBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record);\n\n");
+        }
+        //条件查询
+        if (reqDTO.getMapperNames().contains("selectSelective")) {
+            content.append("\t/**\n").append("\t * 条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询的数据\n").append("\t * @return 返回的数据\n").append("\t */\n");
+            content.append("\tList<" + reqDTO.getEntityName() + "> selectSelective(" + reqDTO.getEntityName() + "DTO record);\n\n");
+        }
+        //批量条件查询
+        if (reqDTO.getMapperNames().contains("selectBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询的数据\n").append("\t * @return 返回的数据\n").append("\t */\n");
+            content.append("\tList<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record);\n\n");
+        }
+        content.append("}");
+
+        //生成文件夹
+        String mapperPath = "service";
+        String dir = getDir(codePath + File.separator + mapperPath);
+
+        //写入文件
+        String serviceFileName = dir + File.separator + reqDTO.getServiceName() + ".java";
+        writeFileToPath(reqDTO, content.toString(), serviceFileName);
+
+        //impl
+        generatorServiceImplCode(reqDTO,codePath,columns);
     }
 
 
@@ -321,11 +669,82 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         String dir = getDir(codePath + File.separator + mapperPath);
         //生成XML
         String xmlContent = getXmlMapper(reqDTO, columns);
+        //生成MapperDao接口
+        String daoContent = getDaoMapper(reqDTO, columns);
 
         //写入文件
-        String fileName = dir + File.separator + reqDTO.getEntityName() + "Mapper.xml";
-        writeFileToPath(reqDTO, xmlContent, fileName);
+        String xmlfileName = dir + File.separator + reqDTO.getEntityName() + "Mapper.xml";
+        String daofileName = dir + File.separator + reqDTO.getEntityName() + "Mapper.java";
+        writeFileToPath(reqDTO, xmlContent, xmlfileName);
+        writeFileToPath(reqDTO, daoContent, daofileName);
 
+    }
+
+    /**
+     * 生成dao接口
+     *
+     * @param reqDTO
+     * @return
+     */
+    private String getDaoMapper(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
+        StringBuilder content = new StringBuilder();
+        content.append("package com.base.project.mapper;\n\n");
+        content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import org.apache.ibatis.annotations.Mapper;\n\n");
+        content.append("import java.util.List;\n\n");
+        content.append("/**\n").append(" * ").append(reqDTO.getEntityName()).append("Mapper\n").append(" * @author hubin\n");
+        content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
+        content.append("@Mapper\n").append("public interface ").append(reqDTO.getEntityName()).append("Mapper {\n");
+        //条件插入
+        if (reqDTO.getMapperNames().contains("insertSelective")) {
+            content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint insertSelective(" + reqDTO.getEntityName() + " record);\n\n");
+        }
+        //批量插入
+        if (reqDTO.getMapperNames().contains("insertBatch")) {
+            content.append("\t/**\n").append("\t * 批量插入\n").append("\t *\n")
+                    .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint insertBatch(List<" + reqDTO.getEntityName() + "> record);\n\n");
+        }
+        //条件删除
+        if (reqDTO.getMapperNames().contains("deleteSelective")) {
+            content.append("\t/**\n").append("\t * 条件删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint deleteSelective(" + reqDTO.getEntityName() + " record);\n\n");
+        }
+        //批量条件删除
+        if (reqDTO.getMapperNames().contains("deleteBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量删除\n").append("\t *\n")
+                    .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint deleteBatchSelective(List<" + reqDTO.getEntityName() + "> record);\n\n");
+        }
+        //条件更新
+        if (reqDTO.getMapperNames().contains("updateSelective")) {
+            content.append("\t/**\n").append("\t * 条件更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint updateSelective(" + reqDTO.getEntityName() + " record);\n\n");
+        }
+        //批量条件更新
+        if (reqDTO.getMapperNames().contains("updateBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量更新\n").append("\t *\n")
+                    .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n");
+            content.append("\tint updateBatchSelective(List<" + reqDTO.getEntityName() + "> record);\n\n");
+        }
+        //条件查询
+        if (reqDTO.getMapperNames().contains("selectSelective")) {
+            content.append("\t/**\n").append("\t * 条件查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询的数据\n").append("\t * @return 返回的数据\n").append("\t */\n");
+            content.append("\tList<" + reqDTO.getEntityName() + "> selectSelective(" + reqDTO.getEntityName() + " record);\n\n");
+        }
+        //批量条件查询
+        if (reqDTO.getMapperNames().contains("selectBatchSelective")) {
+            content.append("\t/**\n").append("\t * 条件批量查询\n").append("\t *\n")
+                    .append("\t * @param record 需要查询的数据\n").append("\t * @return 返回的数据\n").append("\t */\n");
+            content.append("\tList<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "> record);\n\n");
+        }
+        content.append("}");
+        return content.toString();
     }
 
     /**
@@ -472,7 +891,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      */
     private String generatorSelectBatchSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         StringBuilder content = new StringBuilder();
-        content.append("\t<select id=\"selectBatchSelective\" resultMap=\"BaseResultMap\">\n");
+        content.append("\t<select id=\"selectBatchSelective\" resultMap=\"BaseResultMap\" parameterType=\"com.base.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
         content.append("\t\tselect\n").append("\t\t<include refid=\"Base_Column_List\"/>\n");
         content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\twhere 1=0\n");
         content.append("\t\t<trim prefix=\"or\">\n").append("\t\t\t<foreach collection=\"list\" open=\"(\" separator=\")or(\" close=\")\" item=\"item\">\n");
@@ -496,7 +915,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
      */
     private String generatorSelectSelective(GeneratorJavaCodeDTO reqDTO, List<DatabaseTableColumn> columns) {
         StringBuilder content = new StringBuilder();
-        content.append("\t<select id=\"selectSelective\" resultMap=\"BaseResultMap\">\n");
+        content.append("\t<select id=\"selectSelective\" resultMap=\"BaseResultMap\" parameterType=\"com.base.project.entity.").append(reqDTO.getEntityName()).append("\">\n");
         content.append("\t\tselect\n").append("\t\t<include refid=\"Base_Column_List\"/>\n");
         content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\t<where>\n");
         for (DatabaseTableColumn column : columns) {

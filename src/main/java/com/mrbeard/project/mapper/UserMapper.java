@@ -8,10 +8,19 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 /**
- * 用户Mapper
+ * UserMapper
+ * @author hubin
+ * @date 2020-12-5
  */
 @Mapper
 public interface UserMapper {
+
+    /**
+     *
+     *
+     * @param id
+     * @return
+     */
     int deleteByPrimaryKey(Long id);
 
     int insert(User record);

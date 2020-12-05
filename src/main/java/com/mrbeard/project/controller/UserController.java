@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -119,13 +120,6 @@ public class UserController {
     @PostMapping("/listUser")
     public Result listUser(@RequestBody ListUserReqDTO reqDTO){
         return userService.listUser(reqDTO);
-    }
-
-
-
-    @PostMapping("/test")
-    public Result test(){
-        return userService.test();
     }
 
 }
