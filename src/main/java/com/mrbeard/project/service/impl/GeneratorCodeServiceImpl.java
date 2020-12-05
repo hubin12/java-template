@@ -7,6 +7,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.HttpUtil;
 import com.mrbeard.project.dto.request.GeneratorJavaCodeDTO;
@@ -201,8 +202,11 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         if (reqDTO.getIsGeneratorController() == 1) {
             generatorControllerCode(reqDTO, codePath, columns);
         }
+        //将代码打包
+        String zipPath = user.getId() + ".zip";
+        ZipUtil.zip(File.separator + "download" + File.separator + user.getId());
         //设置下载路径
-        return Result.returnSuccess();
+        return Result.returnSuccessWithData(zipPath);
     }
 
     /**
