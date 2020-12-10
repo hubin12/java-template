@@ -289,10 +289,11 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         content.append("package com.base.project.controller;\n\n");
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
-        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getControllerName()).append(";\n");
+        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import org.springframework.web.bind.annotation.RestController;\n");
         content.append("import org.springframework.web.bind.annotation.PostMapping;\n");
+        content.append("import org.springframework.web.bind.annotation.RequestBody;\n");
         content.append("import javax.annotation.Resource;\n");
         content.append("import java.util.List;\n\n");
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
@@ -300,13 +301,13 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("@RestController\n");
         content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append(" {\n");
         content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Service\n").append("\t */\n").append("\t@Resource\n");
-        content.append("\t").append(reqDTO.getEntityName()).append("Service ").append(firstToLowCase(reqDTO.getEntityName())).append("Service;\n\n");
+        content.append("\t").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append("Service").append(";\n\n");
         //条件插入
         if (reqDTO.getMapperNames().contains("insertSelective")) {
             content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
                     .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/insertSelective\")\n");
-            content.append("\tpublic int insertSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\tpublic int insertSelective(@RequestBody " + reqDTO.getEntityName() + "DTO record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.insertSelective(record);\n");
             content.append("\t}\n\n");
@@ -316,7 +317,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 批量插入\n").append("\t *\n")
                     .append("\t * @param record 需要插入的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/insertBatch\")\n");
-            content.append("\tpublic int insertBatch(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\tpublic int insertBatch(@RequestBody List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.insertBatch(record);\n");
             content.append("\t}\n\n");
@@ -326,7 +327,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 条件删除\n").append("\t *\n")
                     .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/deleteSelective\")\n");
-            content.append("\tpublic int deleteSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\tpublic int deleteSelective(@RequestBody " + reqDTO.getEntityName() + "DTO record) {\n\n");
             content.append("\t\t// 调用Service \n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.deleteSelective(record);\n");
             content.append("\t}\n\n");
@@ -336,7 +337,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 批量条件删除\n").append("\t *\n")
                     .append("\t * @param record 需要删除的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/deleteBatchSelective\")\n");
-            content.append("\tpublic int deleteBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\tpublic int deleteBatchSelective(@RequestBody List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.deleteBatchSelective(record);\n");
             content.append("\t}\n\n");
@@ -346,7 +347,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 条件更新\n").append("\t *\n")
                     .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/updateSelective\")\n");
-            content.append("\tpublic int updateSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\tpublic int updateSelective(@RequestBody " + reqDTO.getEntityName() + "DTO record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.updateSelective(record);\n");
             content.append("\t}\n\n");
@@ -356,9 +357,9 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 批量条件更新\n").append("\t *\n")
                     .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/updateBatchSelective\")\n");
-            content.append("\tpublic int updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\tpublic int updateBatchSelective(@RequestBody List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// 调用Service\n");
-            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.updateBatchSelective(record);\n");
+            content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.updateBatchSelective(record);\n");
             content.append("\t}\n\n");
         }
         //条件查询
@@ -366,7 +367,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 条件查询\n").append("\t *\n")
                     .append("\t * @param record 需要查询数据\n").append("\t * @return 返回的数据\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/selectSelective\")\n");
-            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectSelective(" + reqDTO.getEntityName() + "DTO record) {\n\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectSelective(@RequestBody " + reqDTO.getEntityName() + "DTO record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.selectSelective(record);\n");
             content.append("\t}\n\n");
@@ -376,7 +377,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\t/**\n").append("\t * 批量条件查询\n").append("\t *\n")
                     .append("\t * @param record 需要更新的数据\n").append("\t * @return 影响的条数\n").append("\t */\n")
                     .append("\t@PostMapping(value = \"/selectBatchSelective\")\n");
-            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
+            content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectBatchSelective(@RequestBody List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// 调用Service\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Service.selectBatchSelective(record);\n");
             content.append("\t}\n\n");
@@ -403,11 +404,13 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         StringBuilder content = new StringBuilder();
         content.append("package com.base.project.service.impl;\n\n");
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
+        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import com.mrbeard.project.mapper.").append(reqDTO.getEntityName()).append("Mapper;\n");
         content.append("import org.springframework.stereotype.Service;\n");
         content.append("import javax.annotation.Resource;\n");
         content.append("import cn.hutool.core.bean.BeanUtil;\n\n");
+        content.append("import cn.hutool.core.collection.CollectionUtil;\n\n");
         content.append("import java.util.ArrayList;\n");
         content.append("import java.util.List;\n\n");
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
@@ -435,7 +438,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\tpublic int insertBatch(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// DTO转成实体类\n");
             content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
-            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\tCollectionUtil.addAll(").append(firstToLowCase(reqDTO.getEntityName())).append("List, record);\n");
             content.append("\t\t// 调用Mapper\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.insertBatch(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
             content.append("\t}\n\n");
@@ -459,7 +462,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\tpublic int deleteBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// DTO转成实体类\n");
             content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
-            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\tCollectionUtil.addAll(").append(firstToLowCase(reqDTO.getEntityName())).append("List, record);\n");
             content.append("\t\t// 调用Mapper\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.deleteBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
             content.append("\t}\n\n");
@@ -483,7 +486,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\tpublic int updateBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// DTO转成实体类\n");
             content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
-            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\tCollectionUtil.addAll(").append(firstToLowCase(reqDTO.getEntityName())).append("List, record);\n");
             content.append("\t\t// 调用Mapper\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.updateBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
             content.append("\t}\n\n");
@@ -507,7 +510,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             content.append("\tpublic List<" + reqDTO.getEntityName() + "> selectBatchSelective(List<" + reqDTO.getEntityName() + "DTO> record) {\n\n");
             content.append("\t\t// DTO转成实体类\n");
             content.append("\t\tList<").append(reqDTO.getEntityName()).append("> ").append(firstToLowCase(reqDTO.getEntityName())).append("List = new ArrayList<>();\n");
-            content.append("\t\tBeanUtil.copyProperties(record, ").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
+            content.append("\t\tCollectionUtil.addAll(").append(firstToLowCase(reqDTO.getEntityName())).append("List, record);\n");
             content.append("\t\t// 调用Mapper\n");
             content.append("\t\treturn ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper.selectBatchSelective(").append(firstToLowCase(reqDTO.getEntityName())).append("List);\n");
             content.append("\t}\n\n");
@@ -821,9 +824,16 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
                         .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
                         .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
             } else {
+                String dataType = column.getDataType();
+                if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                    dataType = "timestamp";
+                }
+                if(dataType.indexOf("int") != -1) {
+                    dataType = "integer";
+                }
                 argContent.append("\t\t\t<arg column=\"").append(column.getColumnName())
                         .append("\" javaType=\"").append(getJavaPackageType(column.getDataType()))
-                        .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
+                        .append("\" jdbcType=\"").append(dataType.toUpperCase()).append("\" />\n");
             }
             cloumnList.append(column.getColumnName()).append(",");
         }
@@ -906,11 +916,18 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t<trim prefix=\"or\">\n").append("\t\t\t<foreach collection=\"list\" open=\"(\" separator=\")or(\" close=\")\" item=\"item\">\n");
         content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
             content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != null and item.").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
                     .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
-                    .append(column.getDataType().toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
+                    .append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
         }
         content.append("\t\t\t\t</trim>\n").append("\t\t\t</foreach>\n").append("\t\t</trim>\n").append("\t</select>\n\n");
         return content.toString();
@@ -928,11 +945,18 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\tselect\n").append("\t\t<include refid=\"Base_Column_List\"/>\n");
         content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\t<where>\n");
         for (DatabaseTableColumn column : columns) {
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
             content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != ''\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
                     .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
-                    .append(column.getDataType().toUpperCase()).append("}\n\t\t</if>\n");
+                    .append(dataType.toUpperCase()).append("}\n\t\t</if>\n");
         }
         content.append("\t\t</where>\n").append("\t</select>\n\n");
         return content.toString();
@@ -989,10 +1013,17 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         List<DatabaseTableColumn> keys = new ArrayList<>();
         for (DatabaseTableColumn column : columns) {
             if (ObjectUtil.isEmpty(column.getColumnKey())) {
+                String dataType = column.getDataType();
+                if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                    dataType = "timestamp";
+                }
+                if(dataType.indexOf("int") != -1) {
+                    dataType = "integer";
+                }
                 content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
                         .append(removeSuffixAndToUp(column.getColumnName())).append(" != ''\">\n\t\t\t\t")
                         .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
-                        .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n\t\t\t</if>\n");
+                        .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
             } else {
                 keys.add(column);
             }
@@ -1000,7 +1031,14 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t</set>\n\t\twhere ");
         StringBuilder keyString = new StringBuilder();
         for (DatabaseTableColumn key : keys) {
-            keyString.append(key.getColumnName()).append(" = #{").append(removeSuffixAndToUp(key.getColumnName())).append(",jdbcType=").append(key.getDataType().toUpperCase()).append("} and ");
+            String dataType = key.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
+            keyString.append(key.getColumnName()).append(" = #{").append(removeSuffixAndToUp(key.getColumnName())).append(",jdbcType=").append(dataType.toUpperCase()).append("} and ");
         }
         content.append(keyString.toString().trim(), 0, keyString.toString().trim().length() - 3).append("\n");
         content.append("\t</update>\n\n");
@@ -1021,10 +1059,17 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t\t<foreach collection=\"list\" item=\"item\" open=\"(\" close=\")\" separator=\")or(\">\n");
         content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
-            content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
+            content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and item.")
                     .append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
-                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
+                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
         }
         content.append("\t\t\t\t</trim>\n").append("\t\t\t</foreach>\n").append("\t\t</trim>\n").append("\t</delete>\n\n");
         return content.toString();
@@ -1042,9 +1087,16 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\tdelete from ").append(reqDTO.getTableName()).append("\n").append("\t\twhere 1=0\n");
         content.append("\t\t<trim prefix=\"or (\" suffix=\")\" prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
             content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null\">\n\t\t\t\tand ")
                     .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("}\n\t\t\t</if>\n");
+                    .append(",jdbcType=").append(dataType.toUpperCase()).append("}\n\t\t\t</if>\n");
         }
         content.append("\t\t</trim>\n\t</delete>\n\n");
         return content.toString();
@@ -1067,7 +1119,14 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         foreachContent.append("\t\t\t\t<trim suffixOverrides=\",\">\n");
         for (DatabaseTableColumn column : columns) {
             valueContent.append(column.getColumnName()).append(",");
-            foreachContent.append("\t\t\t\t#{item.").append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n");
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
+            foreachContent.append("\t\t\t\t#{item.").append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(dataType.toUpperCase()).append("},\n");
         }
         content.append("\t\t\t").append(valueContent.toString(), 0, valueContent.toString().length() - 1).append(") values\n");
         content.append(foreachContent);
@@ -1089,13 +1148,20 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         //值信息
         StringBuilder valueContent = new StringBuilder();
         for (DatabaseTableColumn column : columns) {
+            String dataType = column.getDataType();
+            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                dataType = "timestamp";
+            }
+            if(dataType.indexOf("int") != -1) {
+                dataType = "integer";
+            }
             content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != ''").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
             valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
                     .append(" != ''").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(",jdbcType=").append(column.getDataType().toUpperCase()).append("},\n\t\t\t</if>\n");
+                    .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
         }
         content.append("\t\t</trim>\n").append("\t\t<trim prefix=\"values (\" suffix=\")\" suffixOverrides=\",\">\n");
         content.append(valueContent).append("\t\t</trim>\n").append("\t</insert>\n\n");
