@@ -289,19 +289,19 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
 
         content.append("package com.base.project.controller;\n\n");
         content.append("import com.base.project.entity.").append(reqDTO.getEntityName()).append(";\n");
-        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(";\n");
+        content.append("import com.base.project.service.").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(";\n");
         content.append("import com.base.project.dto.").append(reqDTO.getEntityName()).append("DTO;\n");
         content.append("import org.springframework.web.bind.annotation.RestController;\n");
         content.append("import org.springframework.web.bind.annotation.PostMapping;\n");
         content.append("import org.springframework.web.bind.annotation.RequestBody;\n");
         content.append("import javax.annotation.Resource;\n");
         content.append("import java.util.List;\n\n");
-        content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
+        content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() + "Controller" : reqDTO.getControllerName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@RestController\n");
-        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() +"Controller" : reqDTO.getControllerName()).append(" {\n");
+        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getControllerName()) ? reqDTO.getEntityName() + "Controller" : reqDTO.getControllerName()).append(" {\n");
         content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Service\n").append("\t */\n").append("\t@Resource\n");
-        content.append("\t").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append("Service").append(";\n\n");
+        content.append("\t").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(" ").append(firstToLowCase(reqDTO.getEntityName())).append("Service").append(";\n\n");
         //条件插入
         if (reqDTO.getMapperNames().contains("insertSelective")) {
             content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
@@ -416,7 +416,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("Impl\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
         content.append("@Service\n");
-        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append("Impl implements ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(" {\n");
+        content.append("public class ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("Impl implements ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(" {\n");
         content.append("\t/**\n").append("\t * 注入").append(reqDTO.getEntityName()).append("Mapper\n").append("\t */\n").append("\t@Resource\n");
         content.append("\t").append(reqDTO.getEntityName()).append("Mapper ").append(firstToLowCase(reqDTO.getEntityName())).append("Mapper;\n\n");
         //条件插入
@@ -606,7 +606,7 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("import java.util.List;\n\n");
         content.append("/**\n").append(" * ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append("\n").append(" * @author hubin\n");
         content.append(" * @date ").append(DateUtil.format(new Date(), "yyyy-MM-dd")).append("\n").append(" */\n");
-        content.append("public interface ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() +"Service" : reqDTO.getServiceName()).append(" {\n");
+        content.append("public interface ").append(ObjectUtil.isEmpty(reqDTO.getServiceName()) ? reqDTO.getEntityName() + "Service" : reqDTO.getServiceName()).append(" {\n");
         //条件插入
         if (reqDTO.getMapperNames().contains("insertSelective")) {
             content.append("\t/**\n").append("\t * 条件插入\n").append("\t *\n")
@@ -825,10 +825,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
                         .append("\" jdbcType=\"").append(column.getDataType().toUpperCase()).append("\" />\n");
             } else {
                 String dataType = column.getDataType();
-                if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                     dataType = "timestamp";
                 }
-                if(dataType.indexOf("int") != -1) {
+                if (dataType.indexOf("int") != -1) {
                     dataType = "integer";
                 }
                 argContent.append("\t\t\t<arg column=\"").append(column.getColumnName())
@@ -917,10 +917,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
@@ -946,10 +946,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\tfrom ").append(reqDTO.getTableName()).append("\n").append("\t\t<where>\n");
         for (DatabaseTableColumn column : columns) {
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
@@ -1014,10 +1014,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         for (DatabaseTableColumn column : columns) {
             if (ObjectUtil.isEmpty(column.getColumnKey())) {
                 String dataType = column.getDataType();
-                if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+                if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                     dataType = "timestamp";
                 }
-                if(dataType.indexOf("int") != -1) {
+                if (dataType.indexOf("int") != -1) {
                     dataType = "integer";
                 }
                 content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
@@ -1032,10 +1032,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         StringBuilder keyString = new StringBuilder();
         for (DatabaseTableColumn key : keys) {
             String dataType = key.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             keyString.append(key.getColumnName()).append(" = #{").append(removeSuffixAndToUp(key.getColumnName())).append(",jdbcType=").append(dataType.toUpperCase()).append("} and ");
@@ -1060,10 +1060,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t\t\t<trim prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and item.")
@@ -1088,10 +1088,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         content.append("\t\t<trim prefix=\"or (\" suffix=\")\" prefixOverrides=\"and\">\n");
         for (DatabaseTableColumn column : columns) {
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null\">\n\t\t\t\tand ")
@@ -1120,10 +1120,10 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         for (DatabaseTableColumn column : columns) {
             valueContent.append(column.getColumnName()).append(",");
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
             }
-            if(dataType.indexOf("int") != -1) {
+            if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
             }
             foreachContent.append("\t\t\t\t#{item.").append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=").append(dataType.toUpperCase()).append("},\n");
@@ -1149,19 +1149,29 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
         StringBuilder valueContent = new StringBuilder();
         for (DatabaseTableColumn column : columns) {
             String dataType = column.getDataType();
-            if(dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
+            if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
-            }
-            if(dataType.indexOf("int") != -1) {
+                content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
+                valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
+            } else if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
+                content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
+                valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
+            } else {
+                content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != ''").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
+                valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != ''").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
             }
-            content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != ''").append("\">\n\t\t\t\t").append(column.getColumnName()).append(",\n\t\t\t</if>\n");
-            valueContent.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != ''").append("\">\n\t\t\t\t#{").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
         }
         content.append("\t\t</trim>\n").append("\t\t<trim prefix=\"values (\" suffix=\")\" suffixOverrides=\",\">\n");
         content.append(valueContent).append("\t\t</trim>\n").append("\t</insert>\n\n");
