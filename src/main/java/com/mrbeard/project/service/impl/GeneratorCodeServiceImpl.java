@@ -919,15 +919,23 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             String dataType = column.getDataType();
             if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
-            }
-            if (dataType.indexOf("int") != -1) {
+                content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
+            } else if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
+                content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
+            } else {
+                content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null and item.").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
             }
-            content.append("\t\t\t\t\t<if test=\"item.").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null and item.").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != ''\">\n\t\t\t\t\t\tand ").append(column.getColumnName()).append(" = #{item.")
-                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
-                    .append(dataType.toUpperCase()).append("}\n\t\t\t\t\t</if>\n");
         }
         content.append("\t\t\t\t</trim>\n").append("\t\t\t</foreach>\n").append("\t\t</trim>\n").append("\t</select>\n\n");
         return content.toString();
@@ -948,15 +956,23 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
             String dataType = column.getDataType();
             if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                 dataType = "timestamp";
-            }
-            if (dataType.indexOf("int") != -1) {
+                content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t</if>\n");
+            } else if (dataType.indexOf("int") != -1) {
                 dataType = "integer";
+                content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null").append("\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t</if>\n");
+            } else {
+                content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
+                        .append(" != ''\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
+                        .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                        .append(dataType.toUpperCase()).append("}\n\t\t</if>\n");
             }
-            content.append("\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != null and ").append(removeSuffixAndToUp(column.getColumnName()))
-                    .append(" != ''\">\n\t\t\tand ").append(column.getColumnName()).append(" = #{")
-                    .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
-                    .append(dataType.toUpperCase()).append("}\n\t\t</if>\n");
         }
         content.append("\t\t</where>\n").append("\t</select>\n\n");
         return content.toString();
@@ -1016,14 +1032,22 @@ public class GeneratorCodeServiceImpl implements GeneratorCodeService {
                 String dataType = column.getDataType();
                 if (dataType.indexOf("date") != -1 || dataType.indexOf("time") != -1) {
                     dataType = "timestamp";
-                }
-                if (dataType.indexOf("int") != -1) {
+                    content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null")
+                            .append("\">\n\t\t\t\t").append(column.getColumnName()).append(" = #{")
+                            .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                            .append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
+                } else if (dataType.indexOf("int") != -1) {
                     dataType = "integer";
+                    content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null")
+                            .append("\">\n\t\t\t\t").append(column.getColumnName()).append(" = #{")
+                            .append(removeSuffixAndToUp(column.getColumnName())).append(",jdbcType=")
+                            .append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
+                } else {
+                    content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
+                            .append(removeSuffixAndToUp(column.getColumnName())).append(" != ''\">\n\t\t\t\t")
+                            .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
+                            .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
                 }
-                content.append("\t\t\t<if test=\"").append(removeSuffixAndToUp(column.getColumnName())).append(" != null and ")
-                        .append(removeSuffixAndToUp(column.getColumnName())).append(" != ''\">\n\t\t\t\t")
-                        .append(column.getColumnName()).append(" = #{").append(removeSuffixAndToUp(column.getColumnName()))
-                        .append(",jdbcType=").append(dataType.toUpperCase()).append("},\n\t\t\t</if>\n");
             } else {
                 keys.add(column);
             }
